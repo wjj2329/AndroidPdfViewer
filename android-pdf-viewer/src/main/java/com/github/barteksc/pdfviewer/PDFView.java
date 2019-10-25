@@ -51,6 +51,7 @@ import com.github.barteksc.pdfviewer.listener.OnRenderListener;
 import com.github.barteksc.pdfviewer.listener.OnTapListener;
 import com.github.barteksc.pdfviewer.model.PagePart;
 import com.github.barteksc.pdfviewer.scroll.ScrollHandle;
+import com.github.barteksc.pdfviewer.search.ParsePdf;
 import com.github.barteksc.pdfviewer.source.AssetSource;
 import com.github.barteksc.pdfviewer.source.ByteArraySource;
 import com.github.barteksc.pdfviewer.source.DocumentSource;
@@ -103,6 +104,8 @@ public class PDFView extends RelativeLayout {
     private float midZoom = DEFAULT_MID_SCALE;
     private float maxZoom = DEFAULT_MAX_SCALE;
 
+    private File fileName;
+
     /**
      * START - scrolling in first page direction
      * END - scrolling in last page direction
@@ -124,6 +127,8 @@ public class PDFView extends RelativeLayout {
     private DragPinchManager dragPinchManager;
 
     PdfFile pdfFile;
+
+    private boolean searchEnabled;
 
     /** The index of the current sequence */
     private int currentPage;
@@ -1223,6 +1228,14 @@ public class PDFView extends RelativeLayout {
         this.pageFling = pageFling;
     }
 
+    public void setSearchEnabled(boolean searchEnabled) {
+        this.searchEnabled = searchEnabled;
+        if (searchEnabled) {
+            ParsePdf parsePdf = new ParsePdf();
+            parsePdf.parsePdf(fileName);
+        }
+    }
+
     public boolean isPageFlingEnabled() {
         return pageFling;
     }
@@ -1294,6 +1307,7 @@ public class PDFView extends RelativeLayout {
 
     /** Use a file as the pdf source */
     public Configurator fromFile(File file) {
+        fileName = file;
         return new Configurator(new FileSource(file));
     }
 
@@ -1370,6 +1384,8 @@ public class PDFView extends RelativeLayout {
         private FitPolicy pageFitPolicy = FitPolicy.WIDTH;
 
         private boolean fitEachPage = false;
+
+        private boolean searchEnabled = false;
 
         private boolean pageFling = false;
 
@@ -1496,6 +1512,11 @@ public class PDFView extends RelativeLayout {
             return this;
         }
 
+        public Configurator searchEnabled(boolean searchEnabled) {
+            this.searchEnabled = searchEnabled;
+            return this;
+        }
+
         public Configurator fitEachPage(boolean fitEachPage) {
             this.fitEachPage = fitEachPage;
             return this;
@@ -1552,6 +1573,7 @@ public class PDFView extends RelativeLayout {
             PDFView.this.setFitEachPage(fitEachPage);
             PDFView.this.setPageSnap(pageSnap);
             PDFView.this.setPageFling(pageFling);
+            PDFView.this.setSearchEnabled(searchEnabled);
 
             if (pageNumbers != null) {
                 PDFView.this.load(documentSource, password, pageNumbers);

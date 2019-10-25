@@ -18,6 +18,7 @@ package com.github.barteksc.sample;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
@@ -45,6 +46,9 @@ import org.androidannotations.annotations.OptionsItem;
 import org.androidannotations.annotations.OptionsMenu;
 import org.androidannotations.annotations.ViewById;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 @EActivity(R.layout.activity_main)
@@ -103,13 +107,27 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     @AfterViews
     void afterViews() {
         pdfView.setBackgroundColor(Color.LTGRAY);
-        if (uri != null) {
-            displayFromUri(uri);
-        } else {
-            displayFromAsset(SAMPLE_FILE);
-        }
+        displayFromFile("/sdcard/ldc_user_manual.pdf");
+        //displayFromUri(uri);
+        //displayFromAsset(SAMPLE_FILE);
         setTitle(pdfFileName);
     }
+
+    private void displayFromFile(String pdfFilePath) {
+        File pdfFileName = new File(pdfFilePath);
+        
+        pdfView.fromFile(pdfFileName)
+                .defaultPage(pageNumber)
+                .onPageChange(this)
+                .enableAnnotationRendering(true)
+                .onLoad(this)
+                .scrollHandle(new DefaultScrollHandle(this))
+                .spacing(10) // in dp
+                .onPageError(this)
+                .pageFitPolicy(FitPolicy.BOTH).searchEnabled(true)
+                .load();
+    }
+
 
     private void displayFromAsset(String assetFileName) {
         pdfFileName = assetFileName;
